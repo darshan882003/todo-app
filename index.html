@@ -4,7 +4,6 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0e0f23">
-<script>try{var t=JSON.parse(localStorage.getItem('todo.v1')||'{}').theme||'dark';document.documentElement.dataset.theme=(t==='dark'||(t==='auto'&&matchMedia('(prefers-color-scheme: dark)').matches))?'dark':'light'}catch(e){document.documentElement.dataset.theme='dark'}</script>
 <title>Today</title>
 <link rel="stylesheet" href="css/base.css">
 <link rel="stylesheet" href="css/components.css">
@@ -24,7 +23,6 @@
 <section class="view" id="app">
   <div class="top">
     <div class="grp"><button class="icon menu" aria-label="Open menu">☰</button><div><div class="date" id="aDate"></div><h2>Today</h2></div></div>
-    <button class="icon" id="setBtn" aria-label="Reminder settings">🔔</button>
   </div>
 
   <div class="card score">
@@ -43,30 +41,21 @@
     </div>
     <div id="one" class="on">
       <div class="row"><input type="text" id="oneIn" placeholder="e.g. Drink 2 litres of water" maxlength="120" autocomplete="off"><button class="btn" id="oneBtn">Add</button></div>
+      <label style="display:flex;align-items:center;gap:8px;margin-top:8px;color:var(--muted);font-size:.9rem"><input type="checkbox" id="oneDefault"> Make default (repeats daily)</label>
     </div>
     <div id="bulk">
       <textarea id="bulkIn" placeholder="Write one task per line:&#10;Gym&#10;Study 1 hour&#10;Call mom"></textarea>
       <button class="btn full" id="bulkBtn">Add all tasks</button>
+      <label style="display:flex;align-items:center;gap:8px;margin-top:8px;color:var(--muted);font-size:.9rem"><input type="checkbox" id="bulkDefault"> Make all default (repeats daily)</label>
       <p class="hint">Each new line becomes one task.</p>
     </div>
   </div>
 
-  <div class="bar"><h3>Your tasks</h3><button class="link" id="clearDone">Remove completed</button></div>
+  <div class="bar"><h3>Your tasks</h3><button class="link" id="clearDone">Clear completed</button></div>
   <ul class="list" id="list"></ul>
 
   <div class="bar"><h3>Last 7 days</h3></div>
   <div class="card"><div class="week" id="week"></div></div>
-</section>
-
-<!-- ROUTINE -->
-<section class="view" id="routine">
-  <div class="top"><div class="grp"><button class="icon menu" aria-label="Open menu">☰</button><h2>Routine</h2></div></div>
-  <div class="card">
-    <h3 style="margin-bottom:12px">Default daily goals</h3>
-    <p class="hint" style="margin-bottom:16px">These goals are added automatically each day based on their repeat rule.</p>
-    <button class="btn" id="addRoutineBtn" style="margin-bottom:16px">+ Add routine goal</button>
-    <div id="routineList"></div>
-  </div>
 </section>
 
 <!-- PROFILE -->
@@ -89,33 +78,11 @@
   <button class="me" id="meBtn"><div class="av" id="sAv">?</div><div><b id="sName">Your name</b><small>View profile</small></div></button>
   <nav class="nav">
     <button data-go="app" class="on">📋 Today</button>
-    <button data-go="routine">🔁 Routine</button>
     <button data-go="profile">👤 Profile</button>
-    <button id="navRem">🔔 Reminders</button>
   </nav>
-  <div class="sidefoot"><p class="hint" style="margin:0 0 8px">Theme</p>
-    <div class="seg" id="seg"><button data-th="light">Light</button><button data-th="dark">Dark</button><button data-th="auto">Auto</button></div></div>
 </aside>
 
-<!-- SETTINGS SHEET -->
-<div class="sheet" id="sheet">
-  <div class="panel">
-    <h3>Daily reminder</h3>
-    <p class="hint" style="margin:0 0 6px">You get a notification if tasks are still unfinished at this time.</p>
-    <div class="sw"><span>Remind me</span><button class="tg" id="tg" role="switch" aria-label="Reminder on or off"></button></div>
-    <div class="sw"><span>Time</span><input type="time" id="rt" style="width:auto"></div>
-    <button class="btn full" id="testBtn" style="background:var(--raised);color:var(--text)">Send a test notification</button>
-    <button class="btn full" id="closeSheet">Done</button>
-    <p class="hint">Reminders fire while this page is open in your browser. Keep Chrome and Termux running.</p>
-  </div>
-</div>
-
 <div class="toast" id="toast"></div>
-
-<!-- EDIT SHEET (for routine goals) -->
-<div class="sheet edit-sheet" id="editSheet">
-  <div class="panel edit-panel" id="editPanel"></div>
-</div>
 
 <script type="module" src="js/app.js"></script>
 </body>

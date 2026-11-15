@@ -18,25 +18,6 @@
   color-scheme: dark;
 }
 
-:root[data-theme=light] {
-  --bg: #f4f5fc;
-  --surface: #ffffff;
-  --raised: #e9ebfa;
-  --line: #d9dcf0;
-  --text: #1b1c3a;
-  --muted: #62658f;
-  --mint: #0fa88f;
-  --violet: #7a69f5;
-  --amber: #e39a1d;
-  --rose: #e0426f;
-  --done-bg: #e3f7f2;
-  --done-line: #8fd9c9;
-  --scrim: #1b1c3a66;
-  --g1: #8b7cff2e;
-  --g2: #5eead433;
-  color-scheme: light;
-}
-
 * {
   box-sizing: border-box;
   margin: 0;

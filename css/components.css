@@ -212,9 +212,27 @@ textarea { min-height: 130px; resize: vertical; }
   padding: 14px 14px 14px 16px;
   animation: rise .4s cubic-bezier(.2, .8, .2, 1) both;
   transition: background .3s, border-color .3s;
+  position: relative;
 }
 
 .item.done { background: var(--done-bg); border-color: var(--done-line); }
+
+.item.default { border-color: var(--mint); }
+
+.item.default .default-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--mint);
+  color: #0b0c1f;
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+  font-weight: bold;
+}
 
 .chk {
   flex: none;
@@ -286,11 +304,6 @@ body.inapp .side { display: flex; }
 .nav button.on { background: var(--raised); color: var(--text); }
 
 .sidefoot { margin-top: auto; }
-.seg { display: flex; background: var(--bg); border-radius: 14px; padding: 4px; }
-.seg button { flex: 1; padding: 9px 6px; border-radius: 11px; color: var(--muted); font-weight: 600; font-size: .9rem; }
-.seg button.on { background: var(--raised); color: var(--text); }
-
-.grp { display: flex; align-items: center; gap: 12px; }
 
 .stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
 .stat { background: var(--bg); border-radius: 16px; padding: 14px; }
