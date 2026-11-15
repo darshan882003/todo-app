@@ -6,6 +6,9 @@
 import { createPinRecord, verifyPin, changePin } from './crypto.js';
 import { getAppData, saveAppData, getSettings, saveSettings } from './db.js';
 
+// TEMPORARY TEST MODE - SET TO false TO RE-ENABLE PIN LOCK
+const TEST_MODE = true;
+
 let lockState = {
   isLocked: true,
   isSetup: false,
@@ -152,6 +155,13 @@ async function loadLockState() {
   }
 
   lockState.isLocked = true;
+
+  if (TEST_MODE) {
+    // Skip PIN lock for testing - show welcome screen directly
+    lockState.isLocked = false;
+    hideLockScreen();
+    return;
+  }
 
   if (!lockState.isSetup) {
     showPinSetupScreen();
