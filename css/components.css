@@ -312,6 +312,37 @@ body.inapp .side { display: flex; }
 
 label.f { display: block; color: var(--muted); font-size: .85rem; margin: 12px 0 6px; }
 
+/* Default goals list */
+.default-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 16px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  margin-bottom: 10px;
+}
+
+.default-info { display: flex; align-items: center; gap: 12px; }
+
+.default-toggle { width: 24px; height: 24px; accent-color: var(--mint); }
+
+.default-text { font-size: 1rem; }
+
+.default-del {
+  width: 36px; height: 36px; border-radius: 10px;
+  color: var(--muted); font-size: 1.3rem;
+  background: var(--bg); border: 1px solid var(--line);
+}
+.default-del:hover { color: var(--rose); border-color: var(--rose); }
+
+.edit-field { margin-bottom: 16px; }
+.edit-field label { display: block; color: var(--muted); font-size: .85rem; margin-bottom: 6px; }
+.edit-field input, .edit-field select, .edit-field textarea { width: 100%; background: var(--bg); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; font-size: 1rem; }
+.edit-actions { display: flex; gap: 10px; margin-top: 20px; }
+.edit-actions .btn { flex: 1; }
+
 @media (min-width: 900px) {
   .side { transform: none; }
   .scrim { display: none; }

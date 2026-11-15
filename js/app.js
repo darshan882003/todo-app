@@ -21,6 +21,7 @@ async function init() {
   initUI();
   paintProfile();
   renderApp();
+  renderDefaults();
   window.renderApp = renderApp;
 }
 
@@ -73,16 +74,19 @@ function initUI() {
 
   $('#saveProf').onclick = () => { getAppData().then(data => { data.profile.name = $('#nameIn').value.trim(); data.profile.about = $('#aboutIn').value.trim(); saveAppData(data); paintProfile(); toast('Profile saved'); }); };
 
+  $('#addDefaultBtn')?.addEventListener('click', () => openDefaultEditor());
+
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
 }
 
 function go(page) {
-  ['app', 'profile'].forEach(v => $('#' + v).classList.toggle('on', v === page));
+  ['app', 'profile', 'defaults'].forEach(v => $('#' + v).classList.toggle('on', v === page));
   $('#welcome').classList.remove('on');
   $$('.nav [data-go]').forEach(b => b.classList.toggle('on', b.dataset.go === page));
   menu(false); window.scrollTo(0, 0);
   if (page === 'app') renderApp();
   else if (page === 'profile') paintProfile();
+  else if (page === 'defaults') renderDefaults();
 }
 
 function menu(open) { $('#side').classList.toggle('open', open); $('#scrim').classList.toggle('on', open); }
@@ -115,13 +119,11 @@ async function renderApp() {
       li.innerHTML = '<button class="chk" aria-label="Mark ' + (t.done ? 'undone' : 'done') + '"><svg viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5"/></svg></button><span class="txt"></span>' + (t.isDefault ? '<span class="default-badge">●</span>' : '') + '<button class="del" aria-label="Delete task">×</button>';
       li.querySelector('.txt').textContent = t.t;
       const tog = () => {
-        if (t.isDefault) return; // Default tasks can't be toggled off once done
         toggleGoal(dk(), t.id).then(() => { li.classList.toggle('done', !t.done); t.done = !t.done; score(); week(); if (navigator.vibrate) navigator.vibrate(15); });
       };
       li.querySelector('.chk').onclick = tog;
       li.querySelector('.txt').onclick = tog;
       li.querySelector('.del').onclick = () => {
-        if (t.isDefault) return toast('Default tasks cannot be deleted');
         li.style.transition = '.25s'; li.style.opacity = 0; li.style.transform = 'translateX(40px)';
         setTimeout(async () => { await deleteGoal(dk(), t.id); renderApp(); }, 230);
       };
@@ -131,6 +133,98 @@ async function renderApp() {
   score(); week();
 }
 
+async function renderDefaults() {
+  const data = await getAppData();
+  const container = $('#defaultList');
+  if (!data.defaultGoals?.length) {
+    container.innerHTML = '<p class="empty">No default goals yet. Add one above.</p>';
+    return;
+  }
+  container.innerHTML = data.defaultGoals.map(g => `
+    <div class="default-item" data-id="${g.id}">
+      <div class="default-info">
+        <input type="checkbox" class="default-toggle" ${g.enabled ? 'checked' : ''} data-id="${g.id}">
+        <span class="default-text">${escapeHtml(g.t)}</span>
+      </div>
+      <button class="default-del" data-id="${g.id}" aria-label="Delete">×</button>
+    </div>
+  `).join('');
+
+  $$('#defaultList .default-toggle').forEach(t => t.onchange = async () => {
+    const d = await getAppData();
+    const g = d.defaultGoals.find(x => x.id === t.dataset.id);
+    if (g) { g.enabled = t.checked; await saveAppData(d); toast(t.checked ? 'Enabled' : 'Disabled'); }
+  });
+
+  $$('#defaultList .default-del').forEach(b => b.onclick = async () => {
+    if (!confirm('Delete this default goal?')) return;
+    const d = await getAppData();
+    d.defaultGoals = d.defaultGoals.filter(x => x.id !== b.dataset.id);
+    await saveAppData(d);
+    // Also remove from today if present
+    const todayKey = dk();
+    if (d.days[todayKey]) {
+      d.days[todayKey] = d.days[todayKey].filter(t => t.defaultId !== b.dataset.id);
+    }
+    await saveAppData(d);
+    renderDefaults();
+    renderApp();
+    toast('Deleted');
+  });
+}
+
+async function openDefaultEditor(id = null) {
+  const isNew = !id;
+  const sheet = $('#editSheet') || createEditSheet();
+  const panel = $('#editPanel');
+  if (!sheet || !panel) return;
+
+  panel.innerHTML = `
+    <h3>${isNew ? 'Add' : 'Edit'} Default Goal</h3>
+    <div class="edit-field"><label>Goal name</label><input type="text" id="dName" maxlength="120" placeholder="e.g. Morning walk"></div>
+    <div class="edit-field"><label><input type="checkbox" id="dEnabled" checked> Enabled</label></div>
+    <div class="edit-actions"><button class="btn" id="cancelD">Cancel</button><button class="btn" id="saveD">${isNew ? 'Add' : 'Save'}</button></div>
+  `;
+
+  if (!isNew) {
+    const d = await getAppData();
+    const g = d.defaultGoals.find(x => x.id === id);
+    if (g) { $('#dName').value = g.t; $('#dEnabled').checked = g.enabled; }
+  }
+
+  $('#cancelD').onclick = () => sheet.classList.remove('on');
+  $('#saveD').onclick = async () => {
+    const name = $('#dName').value.trim();
+    if (!name) return toast('Enter a name');
+    const d = await getAppData();
+    if (!d.defaultGoals) d.defaultGoals = [];
+
+    if (isNew) {
+      d.defaultGoals.push({ id: uid(), t: name, enabled: $('#dEnabled').checked });
+    } else {
+      const g = d.defaultGoals.find(x => x.id === id);
+      if (g) { g.t = name; g.enabled = $('#dEnabled').checked; }
+    }
+    await saveAppData(d);
+    toast(isNew ? 'Added' : 'Saved');
+    sheet.classList.remove('on');
+    renderDefaults();
+  };
+
+  sheet.classList.add('on');
+}
+
+function createEditSheet() {
+  const s = document.createElement('div');
+  s.className = 'sheet edit-sheet';
+  s.id = 'editSheet';
+  s.innerHTML = '<div class="panel edit-panel" id="editPanel"></div>';
+  document.body.appendChild(s);
+  return s;
+}
+
+function escapeHtml(t) { const d = document.createElement('div'); d.textContent = t; return d.innerHTML; }
+
 function score() { getTodayGoals().then(L => { const d = L.filter(t => t.done).length; const p = pctOf(L); $('#fg').style.strokeDashoffset = 327 - 327 * p / 100; $('#pct').textContent = p; $('#ring').classList.remove('full'); if (L.length && p === 100) { void $('#ring').offsetWidth; $('#ring').classList.add('full'); } let a, b; if (!L.length) { a = 'No tasks yet'; b = 'Add your first task below.'; } else { b = d + ' of ' + L.length + ' done'; a = p === 100 ? 'Perfect day!' : p >= 75 ? 'Almost there' : p >= 40 ? 'Good progress' : p > 0 ? 'Nice start' : 'Time to begin'; } $('#sTitle').textContent = a; $('#sSub').textContent = b; }); }
 
 function week() {
@@ -139,10 +233,10 @@ function week() {
 }
 
 /* ---- tasks ---- */
-function addGoal(text, isDefault) { return addDayGoals(dk(), [{ id: uid(), t: text.slice(0,120), done: false, isDefault: !!isDefault, createdAt: Date.now() }]); }
-function addBulkGoals(lines, isDefault) { const goals = lines.map(t => ({ id: uid(), t: t.slice(0,120), done: false, isDefault: !!isDefault, createdAt: Date.now() })); return addDayGoals(dk(), goals); }
-function toggleGoal(dayKey, goalId) { return getAppData().then(data => { const goals = data.days[dayKey]; if (!goals) return; const goal = goals.find(g => g.id === goalId); if (!goal || goal.isDefault) return; goal.done = !goal.done; return saveAppData(data).then(() => goal); }); }
-function deleteGoal(dayKey, goalId) { return getAppData().then(data => { const goals = data.days[dayKey]; if (!goals) return; const idx = goals.findIndex(g => g.id === goalId); if (idx === -1) return; if (goals[idx].isDefault) return; goals.splice(idx, 1); return saveAppData(data); }); }
+function addGoal(text, isDefault) { return addDayGoals(dk(), [{ id: uid(), t: text.slice(0,120), done: false, isDefault: !!isDefault, defaultId: isDefault ? uid() : null, createdAt: Date.now() }]); }
+function addBulkGoals(lines, isDefault) { const goals = lines.map(t => ({ id: uid(), t: t.slice(0,120), done: false, isDefault: !!isDefault, defaultId: isDefault ? uid() : null, createdAt: Date.now() })); return addDayGoals(dk(), goals); }
+function toggleGoal(dayKey, goalId) { return getAppData().then(data => { const goals = data.days[dayKey]; if (!goals) return; const goal = goals.find(g => g.id === goalId); if (!goal) return; goal.done = !goal.done; return saveAppData(data).then(() => goal); }); }
+function deleteGoal(dayKey, goalId) { return getAppData().then(data => { const goals = data.days[dayKey]; if (!goals) return; const idx = goals.findIndex(g => g.id === goalId); if (idx === -1) return; goals.splice(idx, 1); return saveAppData(data); }); }
 function clearCompletedGoals(dayKey) { return getAppData().then(data => { const goals = data.days[dayKey]; if (!goals) return 0; const nonDefaultCompleted = goals.filter(g => g.done && !g.isDefault).length; data.days[dayKey] = goals.filter(g => !g.done || g.isDefault); return saveAppData(data).then(() => nonDefaultCompleted); }); }
 
 /* ---- daily reset ---- */
@@ -151,18 +245,23 @@ function checkDailyReset() {
     const todayKey = dk();
     const lastReset = data.lastReset || '';
     if (lastReset === todayKey) return;
-    // Reset default tasks for today
-    if (data.days[todayKey]) {
-      data.days[todayKey].forEach(t => {
-        if (t.isDefault) { t.done = false; }
-      });
+
+    // Add enabled default goals to today
+    const todayGoals = data.days[todayKey] || [];
+    const existingDefaultIds = new Set(todayGoals.filter(t => t.isDefault).map(t => t.defaultId));
+
+    for (const dg of (data.defaultGoals || [])) {
+      if (!dg.enabled) continue;
+      if (existingDefaultIds.has(dg.id)) continue;
+      todayGoals.push({ id: uid(), t: dg.t, done: false, isDefault: true, defaultId: dg.id, createdAt: Date.now() });
     }
+
+    data.days[todayKey] = todayGoals;
     data.lastReset = todayKey;
     saveAppData(data);
   });
 }
 
-// Run reset check on init and visibility change
 document.addEventListener('visibilitychange', () => { if (!document.hidden) checkDailyReset(); });
 
 document.addEventListener('DOMContentLoaded', async () => {

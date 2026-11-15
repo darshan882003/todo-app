@@ -72,12 +72,24 @@
   <div class="card"><h3 style="margin-bottom:12px">Your numbers</h3><div class="stats" id="stats"></div></div>
 </section>
 
+<!-- DEFAULT GOALS -->
+<section class="view" id="defaults">
+  <div class="top"><div class="grp"><button class="icon menu" aria-label="Open menu">☰</button><h2>Default Goals</h2></div></div>
+  <div class="card">
+    <h3 style="margin-bottom:12px">These repeat every day</h3>
+    <p class="hint" style="margin-bottom:16px">Toggle to enable/disable. They reset each morning.</p>
+    <button class="btn" id="addDefaultBtn" style="margin-bottom:16px">+ Add default goal</button>
+    <div id="defaultList"></div>
+  </div>
+</section>
+
 <!-- SIDE MENU -->
 <div class="scrim" id="scrim"></div>
 <aside class="side" id="side" aria-label="Menu">
   <button class="me" id="meBtn"><div class="av" id="sAv">?</div><div><b id="sName">Your name</b><small>View profile</small></div></button>
   <nav class="nav">
     <button data-go="app" class="on">📋 Today</button>
+    <button data-go="defaults">🔁 Default Goals</button>
     <button data-go="profile">👤 Profile</button>
   </nav>
 </aside>
