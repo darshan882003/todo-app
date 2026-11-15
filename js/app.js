@@ -3,6 +3,9 @@
  * Initializes all modules and handles UI interactions
  */
 
+console.log('app.js loading...');
+alert('app.js loaded - JS is running');
+
 import { getAppData, saveAppData, migrateFromLocalStorage, getSettings, saveSettings } from './db.js';
 import { loadLockState, initLockUI, lockApp, verifyCurrentPin, updatePin, toggleLock, setAutoLockDelay, setHideNotifications, resetAutoLockTimer } from './lock.js';
 import { addGoal, addBulkGoals, toggleGoal, deleteGoal, updateGoal, clearCompletedGoals, getTodayGoals, getGoalStatus, formatTime, dk, today } from './tasks.js';
