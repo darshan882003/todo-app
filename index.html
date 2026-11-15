@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0e0f23">
+<title>Today</title>
+<style>
+:root{
+  --bg:#0e0f23; --surface:#181a38; --raised:#222550; --line:#2f3366;
+  --text:#f2f1ff; --muted:#9a9cc8; --mint:#5eead4; --violet:#8b7cff; --amber:#ffc86b; --rose:#ff7a9c;
+  --r:20px;
+}
+*{box-sizing:border-box;margin:0;-webkit-tap-highlight-color:transparent}
+html,body{min-height:100%;background:var(--bg);color:var(--text);
+  font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.45}
+body{background:
+  radial-gradient(60rem 40rem at 90% -10%,#3a2f8f55,transparent 60%),
+  radial-gradient(50rem 40rem at -10% 110%,#0f6b6a40,transparent 60%),var(--bg);
+  padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+button,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer;border:0;background:none}
+:focus-visible{outline:3px solid var(--mint);outline-offset:2px}
+.view{display:none;min-height:100dvh;width:100%;max-width:640px;margin:0 auto;padding:clamp(16px,4vw,32px)}
+.view.on{display:block}
+
+/* ---------- Start screen ---------- */
+#welcome.on{display:flex;flex-direction:column;justify-content:center;align-items:flex-start;gap:clamp(14px,3vh,26px)}
+.date{color:var(--muted);font-size:1rem}
+#welcome h1{font-size:clamp(2.6rem,12vw,4.6rem);line-height:1.02;letter-spacing:-.03em;font-weight:800}
+#welcome p{color:var(--muted);max-width:30ch;font-size:1.1rem}
+.start{position:relative;margin-top:10px;padding:18px 44px;border-radius:999px;font-weight:700;font-size:1.15rem;
+  color:#0b0c1f;background:linear-gradient(120deg,var(--mint),var(--violet));
+  box-shadow:0 10px 40px #5eead440;transition:transform .2s}
+.start:active{transform:scale(.96)}
+.start::after{content:"";position:absolute;inset:0;border-radius:inherit;border:2px solid var(--mint);animation:pulse 2.2s ease-out infinite}
+@keyframes pulse{0%{transform:scale(1);opacity:.7}100%{transform:scale(1.35,1.6);opacity:0}}
+.pop{animation:rise .7s cubic-bezier(.2,.8,.2,1) both}
+@keyframes rise{from{opacity:0;transform:translateY(26px)}to{opacity:1;transform:none}}
+
+/* ---------- App ---------- */
+.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
+.top h2{font-size:1.5rem;letter-spacing:-.02em}
+.icon{width:46px;height:46px;border-radius:50%;background:var(--surface);border:1px solid var(--line);display:grid;place-items:center;font-size:1.2rem}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:clamp(16px,4vw,24px);margin-bottom:16px}
+.score{display:flex;align-items:center;gap:clamp(16px,5vw,28px)}
+.ring{position:relative;width:clamp(110px,32vw,140px);aspect-ratio:1;flex:none}
+.ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.ring circle{fill:none;stroke-width:11;stroke-linecap:round}
+.ring .bg{stroke:var(--raised)}
+.ring .fg{stroke:url(#g);stroke-dasharray:327;stroke-dashoffset:327;transition:stroke-dashoffset .9s cubic-bezier(.2,.8,.2,1)}
+.ring b{position:absolute;inset:0;display:grid;place-items:center;font-size:clamp(1.7rem,7vw,2.2rem);font-weight:800}
+.ring b small{font-size:.5em;color:var(--muted);font-weight:600}
+.score h3{font-size:1.15rem;margin-bottom:4px}
+.score p{color:var(--muted);font-size:.95rem}
+.ring.full{animation:glow 1.4s ease-in-out 2}
+@keyframes glow{50%{filter:drop-shadow(0 0 18px var(--amber));transform:scale(1.05)}}
+
+.tabs{display:flex;background:var(--bg);border-radius:14px;padding:4px;margin-bottom:12px}
+.tabs button{flex:1;padding:10px;border-radius:11px;color:var(--muted);font-weight:600;transition:.2s}
+.tabs button.on{background:var(--raised);color:var(--text)}
+.row{display:flex;gap:10px}
+input[type=text],textarea,input[type=time]{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:14px 16px;font-size:1rem}
+textarea{min-height:130px;resize:vertical}
+.btn{padding:14px 22px;border-radius:14px;font-weight:700;background:var(--violet);color:#0b0c1f;white-space:nowrap;transition:transform .15s}
+.btn:active{transform:scale(.95)}
+.btn.full{width:100%;margin-top:10px}
+.hint{color:var(--muted);font-size:.85rem;margin-top:8px}
+#one,#bulk{display:none}#one.on,#bulk.on{display:block}
+
+.list{list-style:none;padding:0;display:grid;gap:10px}
+.item{display:flex;align-items:center;gap:14px;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px 14px 14px 16px;animation:rise .4s cubic-bezier(.2,.8,.2,1) both;transition:background .3s,border-color .3s}
+.item.done{background:#12332f;border-color:#1f6b60}
+.chk{flex:none;width:30px;height:30px;border-radius:10px;border:2px solid var(--muted);display:grid;place-items:center;transition:.25s}
+.chk svg{width:18px;height:18px;stroke:#0b0c1f;stroke-width:3.5;fill:none;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:24;stroke-dashoffset:24;transition:stroke-dashoffset .3s .1s}
+.item.done .chk{background:var(--mint);border-color:var(--mint);transform:scale(1.08)}
+.item.done .chk svg{stroke-dashoffset:0}
+.txt{flex:1;word-break:break-word;transition:.3s}
+.item.done .txt{color:var(--muted);text-decoration:line-through;text-decoration-color:var(--mint)}
+.del{width:36px;height:36px;border-radius:10px;color:var(--muted);font-size:1.3rem}
+.del:hover{color:var(--rose)}
+.empty{text-align:center;color:var(--muted);padding:28px 10px}
+.bar{display:flex;justify-content:space-between;align-items:center;margin:20px 2px 10px}
+.bar h3{font-size:1.05rem}
+.link{color:var(--muted);font-size:.9rem;text-decoration:underline;padding:6px}
+
+.week{display:flex;gap:8px;align-items:flex-end;height:90px}
+.week div{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end;font-size:.75rem;color:var(--muted)}
+.week i{width:100%;border-radius:8px;background:linear-gradient(var(--violet),var(--mint));min-height:4px;transition:height .8s}
+
+/* settings sheet */
+.sheet{position:fixed;inset:0;background:#05061488;display:none;align-items:flex-end;justify-content:center;z-index:5}
+.sheet.on{display:flex}
+.panel{width:100%;max-width:640px;background:var(--surface);border-radius:26px 26px 0 0;padding:24px clamp(18px,5vw,30px) calc(28px + env(safe-area-inset-bottom));animation:rise .35s both}
+.panel h3{margin-bottom:6px;font-size:1.25rem}
+.sw{display:flex;justify-content:space-between;align-items:center;padding:14px 0}
+.tg{width:54px;height:30px;border-radius:99px;background:var(--raised);position:relative;transition:.25s;flex:none}
+.tg::after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;transition:.25s}
+.tg.on{background:var(--mint)}.tg.on::after{transform:translateX(24px)}
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translate(-50%,40px);background:var(--raised);border:1px solid var(--line);padding:12px 20px;border-radius:99px;opacity:0;transition:.3s;z-index:9;max-width:90vw;text-align:center}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<!-- START -->
+<section class="view on" id="welcome">
+  <div class="date pop" id="wDate"></div>
+  <h1 class="pop" style="animation-delay:.1s" id="wHi">Let's plan<br>your day.</h1>
+  <p class="pop" style="animation-delay:.2s" id="wSub">Add what you want to get done, tick it off, and see your score at night.</p>
+  <button class="start pop" style="animation-delay:.3s" id="startBtn">Start</button>
+</section>
+
+<!-- APP -->
+<section class="view" id="app">
+  <div class="top">
+    <div><div class="date" id="aDate"></div><h2>Today</h2></div>
+    <button class="icon" id="setBtn" aria-label="Reminder settings">🔔</button>
+  </div>
+
+  <div class="card score">
+    <div class="ring" id="ring">
+      <svg viewBox="0 0 120 120"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5eead4"/><stop offset="1" stop-color="#8b7cff"/></linearGradient></defs>
+        <circle class="bg" cx="60" cy="60" r="52"/><circle class="fg" id="fg" cx="60" cy="60" r="52"/></svg>
+      <b><span id="pct">0</span><small>%</small></b>
+    </div>
+    <div><h3 id="sTitle">No tasks yet</h3><p id="sSub">Add your first task below.</p></div>
+  </div>
+
+  <div class="card">
+    <div class="tabs" role="tablist">
+      <button class="on" data-t="one">One by one</button>
+      <button data-t="bulk">Add in bulk</button>
+    </div>
+    <div id="one" class="on">
+      <div class="row"><input type="text" id="oneIn" placeholder="e.g. Drink 2 litres of water" maxlength="120" autocomplete="off"><button class="btn" id="oneBtn">Add</button></div>
+    </div>
+    <div id="bulk">
+      <textarea id="bulkIn" placeholder="Write one task per line:&#10;Gym&#10;Study 1 hour&#10;Call mom"></textarea>
+      <button class="btn full" id="bulkBtn">Add all tasks</button>
+      <p class="hint">Each new line becomes one task.</p>
+    </div>
+  </div>
+
+  <div class="bar"><h3>Your tasks</h3><button class="link" id="clearDone">Remove completed</button></div>
+  <ul class="list" id="list"></ul>
+
+  <div class="bar"><h3>Last 7 days</h3></div>
+  <div class="card"><div class="week" id="week"></div></div>
+</section>
+
+<!-- SETTINGS -->
+<div class="sheet" id="sheet">
+  <div class="panel">
+    <h3>Daily reminder</h3>
+    <p class="hint" style="margin:0 0 6px">You get a notification if tasks are still unfinished at this time.</p>
+    <div class="sw"><span>Remind me</span><button class="tg" id="tg" role="switch" aria-label="Reminder on or off"></button></div>
+    <div class="sw"><span>Time</span><input type="time" id="rt" style="width:auto"></div>
+    <button class="btn full" id="testBtn" style="background:var(--raised);color:var(--text)">Send a test notification</button>
+    <button class="btn full" id="closeSheet">Done</button>
+    <p class="hint">Reminders fire while this page is open in your browser. Keep Chrome and Termux running.</p>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const $=s=>document.querySelector(s), $$=s=>document.querySelectorAll(s);
+const KEY='todo.v1';
+let S=null; try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){}
+S=S||{days:{},remind:{on:false,time:'20:00',last:''}};
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+const dk=(d=new Date())=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+const today=()=>S.days[dk()]||(S.days[dk()]=[]);
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+const niceDate=d=>d.toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long'});
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(toast.h);toast.h=setTimeout(()=>t.classList.remove('on'),2400)}
+
+/* ---- start screen ---- */
+const h=new Date().getHours();
+$('#wDate').textContent=niceDate(new Date());
+$('#aDate').textContent=niceDate(new Date());
+const greet=h<12?'Good morning.':h<17?'Good afternoon.':'Good evening.';
+const pend=today().filter(t=>!t.done).length;
+$('#wHi').innerHTML=greet+'<br>'+(today().length?'Keep going.':"Let's plan your day.");
+if(today().length){$('#wSub').textContent=pend?pend+' task'+(pend>1?'s':'')+' still waiting for you.':'Everything is done. Nice work.';$('#startBtn').textContent='Continue'}
+$('#startBtn').onclick=()=>{$('#welcome').classList.remove('on');$('#app').classList.add('on');window.scrollTo(0,0);render();setTimeout(()=>$('#oneIn').focus(),300)};
+
+/* ---- tabs ---- */
+$$('.tabs button').forEach(b=>b.onclick=()=>{
+  $$('.tabs button').forEach(x=>x.classList.toggle('on',x===b));
+  $('#one').classList.toggle('on',b.dataset.t==='one');
+  $('#bulk').classList.toggle('on',b.dataset.t==='bulk');
+});
+
+/* ---- add ---- */
+function addOne(){const v=$('#oneIn').value.trim();if(!v)return toast('Type a task first');
+  today().push({id:uid(),t:v,done:false});$('#oneIn').value='';save();render();$('#oneIn').focus()}
+$('#oneBtn').onclick=addOne;
+$('#oneIn').addEventListener('keydown',e=>{if(e.key==='Enter')addOne()});
+$('#bulkBtn').onclick=()=>{
+  const lines=$('#bulkIn').value.split('\n').map(l=>l.replace(/^\s*([-*•]|\d+[.)])\s*/,'').trim()).filter(Boolean);
+  if(!lines.length)return toast('Write at least one task');
+  lines.forEach(t=>today().push({id:uid(),t:t.slice(0,120),done:false}));
+  $('#bulkIn').value='';save();render();toast(lines.length+' task'+(lines.length>1?'s':'')+' added')};
+
+/* ---- list ---- */
+function render(){
+  const L=today(), ul=$('#list');ul.innerHTML='';
+  if(!L.length){const e=document.createElement('li');e.className='empty';e.textContent='Nothing here yet. Add a task above to begin.';ul.append(e)}
+  L.forEach(t=>{
+    const li=document.createElement('li');li.className='item'+(t.done?' done':'');
+    li.innerHTML='<button class="chk" aria-label="Mark done"><svg viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5"/></svg></button><span class="txt"></span><button class="del" aria-label="Delete task">×</button>';
+    li.querySelector('.txt').textContent=t.t;
+    const tog=()=>{t.done=!t.done;save();li.classList.toggle('done',t.done);score();week();if(navigator.vibrate)navigator.vibrate(15)};
+    li.querySelector('.chk').onclick=tog;li.querySelector('.txt').onclick=tog;
+    li.querySelector('.del').onclick=()=>{li.style.transition='.25s';li.style.opacity=0;li.style.transform='translateX(40px)';
+      setTimeout(()=>{S.days[dk()]=today().filter(x=>x.id!==t.id);save();render()},230)};
+    ul.append(li);
+  });
+  score();week();
+}
+$('#clearDone').onclick=()=>{const n=today().filter(t=>t.done).length;if(!n)return toast('No completed tasks');S.days[dk()]=today().filter(t=>!t.done);save();render()};
+
+/* ---- score ---- */
+const pctOf=L=>L.length?Math.round(L.filter(t=>t.done).length/L.length*100):0;
+function score(){
+  const L=today(),d=L.filter(t=>t.done).length,p=pctOf(L);
+  $('#fg').style.strokeDashoffset=327-327*p/100;
+  $('#pct').textContent=p;
+  $('#ring').classList.remove('full');
+  if(L.length&&p===100){void $('#ring').offsetWidth;$('#ring').classList.add('full')}
+  let a,b;
+  if(!L.length){a='No tasks yet';b='Add your first task below.'}
+  else{b=d+' of '+L.length+' done';
+    a=p===100?'Perfect day!':p>=75?'Almost there':p>=40?'Good progress':p>0?'Nice start':'Time to begin'}
+  $('#sTitle').textContent=a;$('#sSub').textContent=b;
+}
+function week(){
+  const w=$('#week');w.innerHTML='';
+  for(let i=6;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);
+    const L=S.days[dk(d)]||[],p=pctOf(L);
+    const c=document.createElement('div');
+    c.innerHTML='<span>'+(L.length?p+'%':'–')+'</span><i style="height:0"></i><span>'+d.toLocaleDateString(undefined,{weekday:'narrow'})+'</span>';
+    w.append(c);const bar=c.querySelector('i');requestAnimationFrame(()=>requestAnimationFrame(()=>bar.style.height=Math.max(4,p*0.5)+'px'));
+  }
+}
+
+/* ---- notifications ---- */
+async function notify(title,body){
+  try{const reg=await navigator.serviceWorker.getRegistration();
+    if(reg){await reg.showNotification(title,{body,tag:'todo',vibrate:[120,60,120]});return true}}catch(e){}
+  try{new Notification(title,{body});return true}catch(e){}
+  return false;
+}
+async function ask(){
+  if(!('Notification' in window)){toast('This browser has no notification support');return false}
+  if(Notification.permission==='granted')return true;
+  const r=await Notification.requestPermission();
+  if(r!=='granted')toast('Notifications are blocked. Allow them in Chrome site settings.');
+  return r==='granted';
+}
+function paintSettings(){$('#tg').classList.toggle('on',S.remind.on);$('#rt').value=S.remind.time}
+$('#setBtn').onclick=()=>{paintSettings();$('#sheet').classList.add('on')};
+$('#closeSheet').onclick=()=>$('#sheet').classList.remove('on');
+$('#sheet').onclick=e=>{if(e.target.id==='sheet')$('#sheet').classList.remove('on')};
+$('#tg').onclick=async()=>{
+  if(!S.remind.on&&!(await ask()))return;
+  S.remind.on=!S.remind.on;save();paintSettings();toast(S.remind.on?'Reminder on for '+S.remind.time:'Reminder off')};
+$('#rt').onchange=e=>{S.remind.time=e.target.value||'20:00';S.remind.last='';save()};
+$('#testBtn').onclick=async()=>{
+  if(!(await ask()))return;
+  const ok=await notify('Today','This is a test reminder. It works!');
+  if(!ok)toast('Could not show the notification')};
+function tick(){
+  if(!S.remind.on||!('Notification' in window)||Notification.permission!=='granted')return;
+  const n=new Date(),hm=String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0');
+  const left=today().filter(t=>!t.done).length;
+  if(hm>=S.remind.time&&S.remind.last!==dk()&&left>0){
+    S.remind.last=dk();save();
+    notify('Tasks waiting',left+' task'+(left>1?'s':'')+' still not done today. Score so far: '+pctOf(today())+'%')}
+}
+setInterval(tick,20000);document.addEventListener('visibilitychange',tick);
+
+if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
+render();
+</script>
+</body>
+</html>
