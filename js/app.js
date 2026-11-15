@@ -107,6 +107,9 @@ function applyTheme() {
   });
 }
 
+// Listen for system theme changes (for auto mode)
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme);
+
 function go(page) {
   ['app', 'profile', 'routine'].forEach(v => $('#' + v).classList.toggle('on', v === page));
   $('#welcome').classList.remove('on');
@@ -162,9 +165,45 @@ function clearCompletedGoals(dayKey) { return getAppData().then(data => { const 
 
 /* ---- notifications ---- */
 let permissionGranted = false;
-async function askPermission() { if (!('Notification' in window)) { toast('No notification support'); return false; } if (Notification.permission === 'granted') { permissionGranted = true; return true; } const r = await Notification.requestPermission(); permissionGranted = r === 'granted'; if (!permissionGranted) toast('Notifications blocked'); return permissionGranted; }
-async function showNotification(title, body) { if (!permissionGranted) return false; try { const reg = await navigator.serviceWorker.getRegistration(); if (reg) { await reg.showNotification(title, { body, tag: 'todo', vibrate: [120,60,120] }); return true; } } catch(e) {} try { new Notification(title, { body }); return true; } catch(e) {} return false; }
-function checkAndSendReminders() { getAppData().then(data => { if (!data.remind?.on || !permissionGranted) return; const now = new Date(), hm = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0'); if (hm < data.remind.time || data.remind.last === dk()) return; const left = (data.days[dk()] || []).filter(t => !t.done).length; if (!left) return; data.remind.last = dk(); saveAppData(data); const score = pctOf(data.days[dk()]); showNotification('Tasks waiting', left + ' task' + (left > 1 ? 's' : '') + ' not done. Score: ' + score + '%'); }); }
+let swReady = false;
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.ready.then(reg => { swReady = true; });
+}
+
+async function askPermission() {
+  if (!('Notification' in window)) { toast('No notification support'); return false; }
+  if (Notification.permission === 'granted') { permissionGranted = true; return true; }
+  const r = await Notification.requestPermission();
+  permissionGranted = r === 'granted';
+  if (!permissionGranted) toast('Notifications blocked. Allow in Chrome site settings.');
+  return permissionGranted;
+}
+
+async function showNotification(title, body) {
+  if (!permissionGranted) return false;
+  if (swReady) {
+    try {
+      const reg = await navigator.serviceWorker.getRegistration();
+      if (reg) { await reg.showNotification(title, { body, tag: 'todo', vibrate: [120,60,120] }); return true; }
+    } catch(e) { console.warn('SW notification failed:', e); }
+  }
+  // Fallback - may not work on Android Chrome
+  try { new Notification(title, { body }); return true; } catch(e) { return false; }
+}
+
+function checkAndSendReminders() {
+  getAppData().then(data => {
+    if (!data.remind?.on || !permissionGranted) return;
+    const now = new Date(), hm = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
+    if (hm < data.remind.time || data.remind.last === dk()) return;
+    const left = (data.days[dk()] || []).filter(t => !t.done).length;
+    if (!left) return;
+    data.remind.last = dk(); saveAppData(data);
+    const score = pctOf(data.days[dk()]);
+    showNotification('Tasks waiting', left + ' task' + (left > 1 ? 's' : '') + ' not done. Score: ' + score + '%');
+  });
+}
 setInterval(checkAndSendReminders, 20000);
 
 /* ---- routine ---- */
@@ -174,8 +213,7 @@ function matchesRepeat(rule, date) { const day = date.getDay(); switch(rule.type
 function getRepeatLabel(r) { const o = REPEAT_OPTS.find(x=>x.v===r.type); if(!o)return'Custom'; if(r.type==='custom'&&r.days)return r.days.map(d=>DAYS[d]).join(', '); return o.l; }
 async function autoFillToday() { const data = await getAppData(); const todayKey = today(); if (data.days[todayKey]?.length) return; const goals = []; for (const rg of data.routine||[]) { if (!rg.enabled) continue; if (!matchesRepeat(rg.repeat, new Date())) continue; if (rg.skipDates?.includes(todayKey)) continue; goals.push({ t: rg.t, startTime: rg.startTime, duration: rg.duration, deadline: rg.deadline, priority: rg.priority, category: rg.category, routineId: rg.id, streak: rg.streak||0 }); } if (goals.length) { data.days[todayKey] = goals.map(g=>({...g,id:uid(),done:false,createdAt:Date.now()})); await saveAppData(data); } }
 async function renderRoutineList() { const data = await getAppData(); const container = $('#routineList'); if(!data.routine?.length) { container.innerHTML = '<p class="empty">No routine goals yet.</p>'; return; } container.innerHTML = data.routine.map((g,i)=>'<div class="routine-item" data-id="'+g.id+'"><div class="routine-info"><div class="routine-name">'+escapeHtml(g.t)+'</div><div class="routine-meta">'+(g.startTime?'<span class="routine-time">'+formatTime(g.startTime)+(g.duration?' · '+g.duration+'min':'')+'</span>':'')+(g.deadline?'<span class="routine-time">Due by '+formatTime(g.deadline)+'</span>':'')+'<span class="routine-days">'+getRepeatLabel(g.repeat)+'</span>'+(g.streak?'<span class="routine-streak">🔥 '+g.streak+'</span>':'')+'</div></div><div class="routine-toggle '+(g.enabled?'on':'')+'" data-id="'+g.id+'"></div><button class="routine-edit" data-id="'+g.id+'">✎</button></div>').join(''); $$('#routineList .routine-toggle').forEach(t=>t.onclick=async()=>{const id=t.dataset.id;const e=!t.classList.contains('on');const d=await getAppData();const rg=d.routine.find(x=>x.id===id);if(rg){rg.enabled=e;await saveAppData(d);t.classList.toggle('on',e);toast(e?'Enabled':'Disabled');}}); $$('#routineList .routine-edit').forEach(b=>b.onclick=()=>openEditRoutineSheet(b.dataset.id)); }
-async function openEditRoutineSheet(id=null) { const isNew=!id; const sheet=$('#editSheet')||createEditSheet(); const panel=$('#editPanel'); if(!panel)return; panel.innerHTML='<h3>'+(isNew?'Add':'Edit')+' Routine Goal</h3><div class="edit-field"><label>Goal name</label><input type="text" id="rName" maxlength="120" placeholder="e.g. Morning walk"></div><div class="edit-field"><label>Start time</label><input type="time" id="rTime"></div><div class="edit-field"><label>Duration (min)</label><input type="number" id="rDur" min="1" max="1440" placeholder="30"></div><div class="edit-field"><label>Deadline</label><input type="time" id="rDeadline"></div><div class="edit-field"><label>Priority</label><select id="rPri"><option value="low">Low</option><option value="medium" selected>Medium</option><option value="high">High</option></select></div><div class="edit-field"><label>Repeat</label><select id="rRep">'+REPEAT_OPTS.map(o=>'<option value="'+o.v+'">'+o.l+'</option>').join('')+'</select></div><div class="edit-field custom-days" style="display:none"><label>Custom days</label><div class="day-picker">'+DAYS.map((d,i)=>'<button type="button" class="day-btn" data-day="'+i+'">'+d+'</button>').join('')+'</div></div><div class="edit-field"><label>Start from</label><input type="date" id="rStart" value="'+today()+'"></div><div class="edit-actions"><button class="btn" id="cancelR">Cancel</button><button class="btn" id="saveR">'+(isNew?'Add':'Save')+'</button></div>'; $('#rRep').onchange=e=>$('.custom-days').style.display=e.target.value==='custom'?'block':'none'; $$('.day-btn').forEach(b=>b.onclick=()=>b.classList.toggle('on')); if(!isNew){const d=await getAppData();const g=d.routine.find(x=>x.id===id);if(g){$('#rName').value=g.t;$('#rTime').value=g.startTime||'';$('#rDur').value=g.duration||'';$('#rDeadline').value=g.deadline||'';$('#rPri').value=g.priority;$('#rRep').value=g.repeat.type;$('#rStart').value=g.startDate;if(g.repeat.type==='custom'){$('.custom-days').style.display='block';g.repeat.days?.forEach(d=>$('.day-btn[data-day="'+d+'"')?.classList.add('on'));}}} $('#cancelR').onclick=()=>sheet.classList.remove('on'); $('#saveR').onclick=async()=>{const name=$('#rName').value.trim();if(!name)return toast('Enter name'); const rt=$('#rRep').value;const repeat={type:rt};if(rt==='custom'){const days=$$('.day-btn.on').map(b=>+b.dataset.day);if(!days.length)return toast('Select days');repeat.days=days;} const rd={t:name,startTime:$('#rTime').value||null,duration:+$('#rDur').value||null,deadline:$('#rDeadline').value||null,priority:$('#rPri').value,category:null,repeat,startDate:$('#rStart').value,skipDates:[],enabled:true,streak:0}; if(isNew)await addRoutineGoal(rd);else{const d=await getAppData();const idx=d.routine.findIndex(x=>x.id===id);if(idx>=0){d.routine[idx]=rd;await saveAppData(d);}} toast(isNew?'Added':'Saved');sheet.classList.remove('on');renderRoutineList();}; sheet.classList.add('on'); }
-function createEditSheet(){const s=document.createElement('div');s.className='sheet edit-sheet';s.id='editSheet';s.innerHTML='<div class="panel edit-panel" id="editPanel"></div>';document.body.appendChild(s);return s;}
+async function openEditRoutineSheet(id=null) { const isNew=!id; const sheet=$('#editSheet'); const panel=$('#editPanel'); if(!sheet||!panel)return; panel.innerHTML='<h3>'+(isNew?'Add':'Edit')+' Routine Goal</h3><div class="edit-field"><label>Goal name</label><input type="text" id="rName" maxlength="120" placeholder="e.g. Morning walk"></div><div class="edit-field"><label>Start time</label><input type="time" id="rTime"></div><div class="edit-field"><label>Duration (min)</label><input type="number" id="rDur" min="1" max="1440" placeholder="30"></div><div class="edit-field"><label>Deadline</label><input type="time" id="rDeadline"></div><div class="edit-field"><label>Priority</label><select id="rPri"><option value="low">Low</option><option value="medium" selected>Medium</option><option value="high">High</option></select></div><div class="edit-field"><label>Repeat</label><select id="rRep">'+REPEAT_OPTS.map(o=>'<option value="'+o.v+'">'+o.l+'</option>').join('')+'</select></div><div class="edit-field custom-days" style="display:none"><label>Custom days</label><div class="day-picker">'+DAYS.map((d,i)=>'<button type="button" class="day-btn" data-day="'+i+'">'+d+'</button>').join('')+'</div></div><div class="edit-field"><label>Start from</label><input type="date" id="rStart" value="'+today()+'"></div><div class="edit-actions"><button class="btn" id="cancelR">Cancel</button><button class="btn" id="saveR">'+(isNew?'Add':'Save')+'</button></div>'; $('#rRep').onchange=e=>$('.custom-days').style.display=e.target.value==='custom'?'block':'none'; $$('.day-btn').forEach(b=>b.onclick=()=>b.classList.toggle('on')); if(!isNew){const d=await getAppData();const g=d.routine.find(x=>x.id===id);if(g){$('#rName').value=g.t;$('#rTime').value=g.startTime||'';$('#rDur').value=g.duration||'';$('#rDeadline').value=g.deadline||'';$('#rPri').value=g.priority;$('#rRep').value=g.repeat.type;$('#rStart').value=g.startDate;if(g.repeat.type==='custom'){$('.custom-days').style.display='block';g.repeat.days?.forEach(d=>$('.day-btn[data-day="'+d+'"')?.classList.add('on'));}}} $('#cancelR').onclick=()=>sheet.classList.remove('on'); $('#saveR').onclick=async()=>{const name=$('#rName').value.trim();if(!name)return toast('Enter name'); const rt=$('#rRep').value;const repeat={type:rt};if(rt==='custom'){const days=$$('.day-btn.on').map(b=>+b.dataset.day);if(!days.length)return toast('Select days');repeat.days=days;} const rd={t:name,startTime:$('#rTime').value||null,duration:+$('#rDur').value||null,deadline:$('#rDeadline').value||null,priority:$('#rPri').value,category:null,repeat,startDate:$('#rStart').value,skipDates:[],enabled:true,streak:0}; if(isNew)await addRoutineGoal(rd);else{const d=await getAppData();const idx=d.routine.findIndex(x=>x.id===id);if(idx>=0){d.routine[idx]=rd;await saveAppData(d);}} toast(isNew?'Added':'Saved');sheet.classList.remove('on');renderRoutineList();}; sheet.classList.add('on'); }
 function escapeHtml(t){const d=document.createElement('div');d.textContent=t;return d.innerHTML;}
 function formatTime(ts){if(!ts)return'';const[h,m]=ts.split(':').map(Number);return(h%12||12)+':'+String(m).padStart(2,'0')+' '+(h>=12?'PM':'AM');}
 
