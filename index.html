@@ -3,68 +3,120 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Today - Test</title>
-<style>
-:root{--bg:#0e0f23;--surface:#181a38;--line:#2f3366;--text:#f2f1ff;--muted:#9a9cc8;--mint:#5eead4;--violet:#8b7cff;--r:20px}
-*{box-sizing:border-box;margin:0;font-family:system-ui,sans-serif}
-body{min-height:100vh;background:var(--bg);color:var(--text);padding:20px}
-.view{display:none}.view.on{display:block}
-.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:20px;margin-bottom:16px}
-.btn{padding:14px 22px;border-radius:14px;font-weight:700;background:var(--violet);color:#0b0c1f;border:none;cursor:pointer}
-.btn:active{transform:scale(.95)}
-input,textarea{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:14px 16px;font-size:1rem;margin-bottom:10px}
-.list{list-style:none;padding:0;display:grid;gap:10px}
-.item{display:flex;align-items:center;gap:14px;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px}
-.chk{width:30px;height:30px;border-radius:10px;border:2px solid var(--muted);display:grid;place-items:center}
-.item.done .chk{background:var(--mint);border-color:var(--mint)}
-.item.done .txt{color:var(--muted);text-decoration:line-through;text-decoration-color:var(--mint)}
-</style>
+<meta name="theme-color" content="#0e0f23">
+<script>try{var t=JSON.parse(localStorage.getItem('todo.v1')||'{}').theme||'dark';document.documentElement.dataset.theme=(t==='dark'||(t==='auto'&&matchMedia('(prefers-color-scheme: dark)').matches))?'dark':'light'}catch(e){document.documentElement.dataset.theme='dark'}</script>
+<title>Today</title>
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/components.css">
+<link rel="manifest" href="manifest.json">
 </head>
 <body>
 
-<!-- WELCOME -->
+<!-- START SCREEN -->
 <section class="view on" id="welcome">
-  <h1 style="font-size:2.5rem;margin-bottom:10px">Let's plan<br>your day.</h1>
-  <p style="color:var(--muted);margin-bottom:20px">Add what you want to get done, tick it off.</p>
-  <button class="btn" id="startBtn" style="width:100%;font-size:1.2rem;padding:18px">Start</button>
+  <div class="date pop" id="wDate"></div>
+  <h1 class="pop" style="animation-delay:.1s" id="wHi">Let's plan<br>your day.</h1>
+  <p class="pop" style="animation-delay:.2s" id="wSub">Add what you want to get done, tick it off, and see your score at night.</p>
+  <button class="start pop" style="animation-delay:.3s" id="startBtn">Start</button>
 </section>
 
-<!-- APP -->
+<!-- APP - TODAY -->
 <section class="view" id="app">
+  <div class="top">
+    <div class="grp"><button class="icon menu" aria-label="Open menu">☰</button><div><div class="date" id="aDate"></div><h2>Today</h2></div></div>
+    <button class="icon" id="setBtn" aria-label="Reminder settings">🔔</button>
+  </div>
+
+  <div class="card score">
+    <div class="ring" id="ring">
+      <svg viewBox="0 0 120 120"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5eead4"/><stop offset="1" stop-color="#8b7cff"/></linearGradient></defs>
+        <circle class="bg" cx="60" cy="60" r="52"/><circle class="fg" id="fg" cx="60" cy="60" r="52"/></svg>
+      <b><span id="pct">0</span><small>%</small></b>
+    </div>
+    <div><h3 id="sTitle">No tasks yet</h3><p id="sSub">Add your first task below.</p></div>
+  </div>
+
   <div class="card">
-    <h2>Today</h2>
-    <div class="row" style="display:flex;gap:10px;margin-bottom:16px">
-      <input type="text" id="taskIn" placeholder="e.g. Drink 2 litres of water" maxlength="120">
-      <button class="btn" id="addBtn">Add</button>
+    <div class="tabs" role="tablist">
+      <button class="on" data-t="one">One by one</button>
+      <button data-t="bulk">Add in bulk</button>
+    </div>
+    <div id="one" class="on">
+      <div class="row"><input type="text" id="oneIn" placeholder="e.g. Drink 2 litres of water" maxlength="120" autocomplete="off"><button class="btn" id="oneBtn">Add</button></div>
+    </div>
+    <div id="bulk">
+      <textarea id="bulkIn" placeholder="Write one task per line:&#10;Gym&#10;Study 1 hour&#10;Call mom"></textarea>
+      <button class="btn full" id="bulkBtn">Add all tasks</button>
+      <p class="hint">Each new line becomes one task.</p>
     </div>
   </div>
+
+  <div class="bar"><h3>Your tasks</h3><button class="link" id="clearDone">Remove completed</button></div>
   <ul class="list" id="list"></ul>
-  <p id="empty" style="text-align:center;color:var(--muted);display:none">Nothing here yet. Add a task above.</p>
+
+  <div class="bar"><h3>Last 7 days</h3></div>
+  <div class="card"><div class="week" id="week"></div></div>
 </section>
 
-<script>
-const $=s=>document.querySelector(s);
-function show(v){$$('.view').forEach(x=>x.classList.remove('on'));$(v).classList.add('on');}
-function $$(s){return document.querySelectorAll(s);}
+<!-- ROUTINE -->
+<section class="view" id="routine">
+  <div class="top"><div class="grp"><button class="icon menu" aria-label="Open menu">☰</button><h2>Routine</h2></div></div>
+  <div class="card">
+    <h3 style="margin-bottom:12px">Default daily goals</h3>
+    <p class="hint" style="margin-bottom:16px">These goals are added automatically each day based on their repeat rule.</p>
+    <button class="btn" id="addRoutineBtn" style="margin-bottom:16px">+ Add routine goal</button>
+    <div id="routineList"></div>
+  </div>
+</section>
 
-$('#startBtn').onclick=()=>show('#app');
+<!-- PROFILE -->
+<section class="view" id="profile">
+  <div class="top"><div class="grp"><button class="icon menu" aria-label="Open menu">☰</button><h2>Profile</h2></div></div>
+  <div class="card" style="text-align:center">
+    <div class="av big" id="pAv">?</div><h3 id="pName"></h3><p class="hint" id="pAbout"></p>
+  </div>
+  <div class="card">
+    <label class="f" for="nameIn">Your name</label><input type="text" id="nameIn" maxlength="30" autocomplete="off">
+    <label class="f" for="aboutIn">About you or your goal</label><input type="text" id="aboutIn" maxlength="80" placeholder="e.g. Build a daily routine" autocomplete="off">
+    <button class="btn full" id="saveProf">Save profile</button>
+  </div>
+  <div class="card"><h3 style="margin-bottom:12px">Your numbers</h3><div class="stats" id="stats"></div></div>
+</section>
 
-function addTask(){
-  const v=$('#taskIn').value.trim();
-  if(!v)return;
-  const li=document.createElement('li');
-  li.className='item';
-  li.innerHTML='<button class="chk"></button><span class="txt">'+v+'</span>';
-  li.querySelector('.chk').onclick=()=>li.classList.toggle('done');
-  $('#list').append(li);
-  $('#taskIn').value='';
-  $('#empty').style.display='none';
-}
-$('#addBtn').onclick=addTask;
-$('#taskIn').addEventListener('keydown',e=>{if(e.key==='Enter')addTask()});
+<!-- SIDE MENU -->
+<div class="scrim" id="scrim"></div>
+<aside class="side" id="side" aria-label="Menu">
+  <button class="me" id="meBtn"><div class="av" id="sAv">?</div><div><b id="sName">Your name</b><small>View profile</small></div></button>
+  <nav class="nav">
+    <button data-go="app" class="on">📋 Today</button>
+    <button data-go="routine">🔁 Routine</button>
+    <button data-go="profile">👤 Profile</button>
+    <button id="navRem">🔔 Reminders</button>
+  </nav>
+  <div class="sidefoot"><p class="hint" style="margin:0 0 8px">Theme</p>
+    <div class="seg" id="seg"><button data-th="light">Light</button><button data-th="dark">Dark</button><button data-th="auto">Auto</button></div></div>
+</aside>
 
-console.log('TEST: Minimal app loaded');
-alert('Minimal app loaded - JS works!');
-</script>
+<!-- SETTINGS SHEET -->
+<div class="sheet" id="sheet">
+  <div class="panel">
+    <h3>Daily reminder</h3>
+    <p class="hint" style="margin:0 0 6px">You get a notification if tasks are still unfinished at this time.</p>
+    <div class="sw"><span>Remind me</span><button class="tg" id="tg" role="switch" aria-label="Reminder on or off"></button></div>
+    <div class="sw"><span>Time</span><input type="time" id="rt" style="width:auto"></div>
+    <button class="btn full" id="testBtn" style="background:var(--raised);color:var(--text)">Send a test notification</button>
+    <button class="btn full" id="closeSheet">Done</button>
+    <p class="hint">Reminders fire while this page is open in your browser. Keep Chrome and Termux running.</p>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- EDIT SHEET (for routine goals) -->
+<div class="sheet edit-sheet" id="editSheet">
+  <div class="panel edit-panel" id="editPanel"></div>
+</div>
+
+<script type="module" src="js/app.js"></script>
 </body>
 </html>
