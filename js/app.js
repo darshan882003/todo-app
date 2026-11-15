@@ -7,6 +7,37 @@ console.log('app.js loading...');
 alert('app.js loaded - JS is running');
 
 import { getAppData, saveAppData, migrateFromLocalStorage, getSettings, saveSettings } from './db.js';
+console.log('db.js loaded');
+
+import { loadLockState, initLockUI, lockApp, verifyCurrentPin, updatePin, toggleLock, setAutoLockDelay, setHideNotifications, resetAutoLockTimer } from './lock.js';
+console.log('lock.js loaded');
+
+import { addGoal, addBulkGoals, toggleGoal, deleteGoal, updateGoal, clearCompletedGoals, getTodayGoals, getGoalStatus, formatTime, dk, today } from './tasks.js';
+console.log('tasks.js loaded');
+
+import { pctOf, getDayScore, getAllScores, getWeeklyAverage, getMonthlyAverage, getStreak, getLongestStreak, getBestDay, getLowestDay, getTotalStats, getScoreMessage } from './score.js';
+console.log('score.js loaded');
+
+import { loadNotificationSettings, askPermission, scheduleGoalNotifications, checkAndSendReminders, startPeriodicCheck, handleNotificationAction, showNotification } from './notifications.js';
+console.log('notifications.js loaded');
+
+import { autoFillToday, getRoutineGoals, createRoutineGoal, updateRoutineGoalById, deleteRoutineGoalById, toggleRoutineGoal, skipRoutineToday, carryOverIncomplete, renderRoutineList, openEditRoutineSheet, closeEditRoutineSheet } from './routine.js';
+console.log('routine.js loaded');
+
+import { initTimelineToggle, renderCurrentView, getCurrentView } from './timeline.js';
+console.log('timeline.js loaded');
+
+import { loadCategories, getCategories, createCategory, updateCategoryById, deleteCategoryById, renderCategoryPicker, renderCategoryManager, openCategorySheet, closeCategorySheet } from './categories.js';
+console.log('categories.js loaded');
+
+import { checkBadges, getEarnedBadges, getAllBadges, renderBadges } from './badges.js';
+console.log('badges.js loaded');
+
+import { exportBackup, importBackup, setupBackupUI } from './backup.js';
+console.log('backup.js loaded');
+
+import { initReportUI, renderReportPreview } from './report.js';
+console.log('report.js loaded');
 import { loadLockState, initLockUI, lockApp, verifyCurrentPin, updatePin, toggleLock, setAutoLockDelay, setHideNotifications, resetAutoLockTimer } from './lock.js';
 import { addGoal, addBulkGoals, toggleGoal, deleteGoal, updateGoal, clearCompletedGoals, getTodayGoals, getGoalStatus, formatTime, dk, today } from './tasks.js';
 import { pctOf, getDayScore, getAllScores, getWeeklyAverage, getMonthlyAverage, getStreak, getLongestStreak, getBestDay, getLowestDay, getTotalStats, getScoreMessage } from './score.js';
