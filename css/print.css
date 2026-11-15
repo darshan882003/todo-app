@@ -1,0 +1,320 @@
+/* Dedicated print stylesheet for PDF reports */
+
+@media print {
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  body {
+    background: white !important;
+    color: #1b1c3a !important;
+    font-size: 10.5pt;
+    line-height: 1.5;
+    padding: 0 !important;
+  }
+
+  .view,
+  .side,
+  .scrim,
+  .sheet,
+  .toast,
+  .edit-sheet,
+  #lock,
+  .menu,
+  .icon,
+  .btn,
+  .tabs,
+  .bar,
+  .link,
+  .seg,
+  .nav,
+  .sidefoot {
+    display: none !important;
+  }
+
+  #report {
+    display: block !important;
+    max-width: none !important;
+    padding: 0 !important;
+  }
+
+  .report-preview {
+    max-height: none !important;
+    overflow: visible !important;
+    border: none !important;
+    box-shadow: none !important;
+    background: white !important;
+    padding: 0 !important;
+  }
+
+  .report-range,
+  .report-options,
+  .report-actions {
+    display: none !important;
+  }
+
+  .report-header {
+    text-align: center;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 2px solid #0fa88f;
+  }
+
+  .report-header h1 {
+    font-size: 18pt;
+    font-weight: 800;
+    color: #1b1c3a;
+    margin-bottom: 4px;
+  }
+
+  .report-header p {
+    font-size: 10pt;
+    color: #62658f;
+  }
+
+  .report-summary {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .summary-card {
+    background: #f4f5fc !important;
+    border: 1px solid #d9dcf0 !important;
+    border-radius: 8px;
+    padding: 12px;
+    break-inside: avoid;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .summary-card b {
+    display: block;
+    font-size: 16pt;
+    font-weight: 800;
+    color: #0fa88f !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .summary-card span {
+    display: block;
+    font-size: 8pt;
+    color: #62658f;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+  }
+
+  .charts-section {
+    margin-bottom: 24px;
+    break-inside: avoid;
+  }
+
+  .charts-section h2 {
+    font-size: 12pt;
+    font-weight: 700;
+    color: #1b1c3a;
+    margin-bottom: 12px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid #d9dcf0;
+  }
+
+  .chart-svg {
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+  }
+
+  .day-by-day {
+    margin-top: 16px;
+  }
+
+  .day-by-day h2 {
+    font-size: 12pt;
+    font-weight: 700;
+    color: #1b1c3a;
+    margin-bottom: 12px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid #d9dcf0;
+  }
+
+  .day-block {
+    background: #fafafa !important;
+    border: 1px solid #e8e8e8 !important;
+    border-radius: 6px;
+    padding: 12px 14px;
+    margin-bottom: 10px;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .day-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #e8e8e8;
+  }
+
+  .day-date {
+    font-weight: 700;
+    font-size: 10.5pt;
+    color: #1b1c3a;
+  }
+
+  .day-score {
+    font-size: 12pt;
+    font-weight: 800;
+    color: #0fa88f !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .goal-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: 6px;
+  }
+
+  .goal-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 9.5pt;
+    color: #1b1c3a;
+  }
+
+  .goal-icon {
+    width: 18px;
+    height: 18px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    font-size: 7.5pt;
+    font-weight: 700;
+  }
+
+  .goal-icon.done {
+    background: #0fa88f !important;
+    color: white !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .goal-icon.pending {
+    background: #f4f5fc !important;
+    border: 1px solid #d9dcf0 !important;
+    color: #62658f;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .goal-text {
+    word-break: break-word;
+  }
+
+  .goal-item.done .goal-text {
+    color: #62658f;
+    text-decoration: line-through;
+    text-decoration-color: #0fa88f;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .not-completed-section {
+    margin-top: 24px;
+    break-inside: avoid;
+  }
+
+  .not-completed-section h2 {
+    font-size: 12pt;
+    font-weight: 700;
+    color: #1b1c3a;
+    margin-bottom: 12px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid #d9dcf0;
+  }
+
+  .not-completed-list {
+    display: grid;
+    gap: 6px;
+  }
+
+  .not-completed-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    background: #fff8f0;
+    border: 1px solid #ffe8cc;
+    border-radius: 6px;
+    font-size: 9pt;
+  }
+
+  .not-completed-date {
+    font-weight: 600;
+    color: #e39a1d;
+    min-width: 80px;
+  }
+
+  .not-completed-text {
+    flex: 1;
+    color: #1b1c3a;
+  }
+
+  .report-footer {
+    margin-top: 24px;
+    padding-top: 12px;
+    border-top: 1px solid #d9dcf0;
+    text-align: center;
+    font-size: 8pt;
+    color: #62658f;
+  }
+
+  @page {
+    size: A4;
+    margin: 16mm;
+  }
+
+  @page :left {
+    @bottom-left {
+      content: counter(page);
+      font-size: 8pt;
+      color: #62658f;
+    }
+  }
+
+  @page :right {
+    @bottom-right {
+      content: counter(page);
+      font-size: 8pt;
+      color: #62658f;
+    }
+  }
+
+  @page :first {
+    @bottom-left {
+      content: none;
+    }
+    @bottom-right {
+      content: none;
+    }
+  }
+
+  h1, h2, h3, h4 {
+    page-break-after: avoid;
+  }
+
+  .day-block,
+  .summary-card,
+  .charts-section {
+    page-break-inside: avoid;
+  }
+}
