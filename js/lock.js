@@ -160,6 +160,7 @@ async function loadLockState() {
     // Skip PIN lock for testing - show welcome screen directly
     lockState.isLocked = false;
     hideLockScreen();
+    showView('welcome');
     return;
   }
 
