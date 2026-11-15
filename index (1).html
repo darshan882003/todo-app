@@ -4,19 +4,22 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0e0f23">
+<script>try{var t=JSON.parse(localStorage.getItem('todo.v1')||'{}').theme||'dark';document.documentElement.dataset.theme=(t==='dark'||(t==='auto'&&matchMedia('(prefers-color-scheme: dark)').matches))?'dark':'light'}catch(e){document.documentElement.dataset.theme='dark'}</script>
 <title>Today</title>
 <style>
 :root{
   --bg:#0e0f23; --surface:#181a38; --raised:#222550; --line:#2f3366;
   --text:#f2f1ff; --muted:#9a9cc8; --mint:#5eead4; --violet:#8b7cff; --amber:#ffc86b; --rose:#ff7a9c;
-  --r:20px;
+  --r:20px;--done-bg:#12332f;--done-line:#1f6b60;--scrim:#05061488;--g1:#3a2f8f55;--g2:#0f6b6a40;color-scheme:dark;
 }
+:root[data-theme=light]{--bg:#f4f5fc;--surface:#ffffff;--raised:#e9ebfa;--line:#d9dcf0;--text:#1b1c3a;--muted:#62658f;
+  --mint:#0fa88f;--violet:#7a69f5;--amber:#e39a1d;--rose:#e0426f;--done-bg:#e3f7f2;--done-line:#8fd9c9;--scrim:#1b1c3a66;--g1:#8b7cff2e;--g2:#5eead433;color-scheme:light}
 *{box-sizing:border-box;margin:0;-webkit-tap-highlight-color:transparent}
 html,body{min-height:100%;background:var(--bg);color:var(--text);
   font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.45}
 body{background:
-  radial-gradient(60rem 40rem at 90% -10%,#3a2f8f55,transparent 60%),
-  radial-gradient(50rem 40rem at -10% 110%,#0f6b6a40,transparent 60%),var(--bg);
+  radial-gradient(60rem 40rem at 90% -10%,var(--g1),transparent 60%),
+  radial-gradient(50rem 40rem at -10% 110%,var(--g2),transparent 60%),var(--bg);
   padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
 button,input,textarea{font:inherit;color:inherit}
 button{cursor:pointer;border:0;background:none}
@@ -70,7 +73,7 @@ textarea{min-height:130px;resize:vertical}
 
 .list{list-style:none;padding:0;display:grid;gap:10px}
 .item{display:flex;align-items:center;gap:14px;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px 14px 14px 16px;animation:rise .4s cubic-bezier(.2,.8,.2,1) both;transition:background .3s,border-color .3s}
-.item.done{background:#12332f;border-color:#1f6b60}
+.item.done{background:var(--done-bg);border-color:var(--done-line)}
 .chk{flex:none;width:30px;height:30px;border-radius:10px;border:2px solid var(--muted);display:grid;place-items:center;transition:.25s}
 .chk svg{width:18px;height:18px;stroke:#0b0c1f;stroke-width:3.5;fill:none;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:24;stroke-dashoffset:24;transition:stroke-dashoffset .3s .1s}
 .item.done .chk{background:var(--mint);border-color:var(--mint);transform:scale(1.08)}
@@ -89,7 +92,7 @@ textarea{min-height:130px;resize:vertical}
 .week i{width:100%;border-radius:8px;background:linear-gradient(var(--violet),var(--mint));min-height:4px;transition:height .8s}
 
 /* settings sheet */
-.sheet{position:fixed;inset:0;background:#05061488;display:none;align-items:flex-end;justify-content:center;z-index:5}
+.sheet{position:fixed;inset:0;background:var(--scrim);display:none;align-items:flex-end;justify-content:center;z-index:8}
 .sheet.on{display:flex}
 .panel{width:100%;max-width:640px;background:var(--surface);border-radius:26px 26px 0 0;padding:24px clamp(18px,5vw,30px) calc(28px + env(safe-area-inset-bottom));animation:rise .35s both}
 .panel h3{margin-bottom:6px;font-size:1.25rem}
@@ -99,6 +102,31 @@ textarea{min-height:130px;resize:vertical}
 .tg.on{background:var(--mint)}.tg.on::after{transform:translateX(24px)}
 .toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translate(-50%,40px);background:var(--raised);border:1px solid var(--line);padding:12px 20px;border-radius:99px;opacity:0;transition:.3s;z-index:9;max-width:90vw;text-align:center}
 .toast.on{opacity:1;transform:translate(-50%,0)}
+.side{position:fixed;inset:0 auto 0 0;width:min(82vw,280px);background:var(--surface);border-right:1px solid var(--line);z-index:6;display:none;flex-direction:column;padding:calc(22px + env(safe-area-inset-top)) 16px calc(18px + env(safe-area-inset-bottom));transform:translateX(-100%);transition:transform .3s cubic-bezier(.2,.8,.2,1)}
+body.inapp .side{display:flex}
+.side.open{transform:none}
+.scrim{position:fixed;inset:0;background:var(--scrim);z-index:5;opacity:0;pointer-events:none;transition:opacity .3s}
+.scrim.on{opacity:1;pointer-events:auto}
+.me{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:6px 6px 18px;border-bottom:1px solid var(--line);margin-bottom:14px}
+.av{width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,var(--mint),var(--violet));display:grid;place-items:center;font-weight:800;font-size:1.2rem;color:#0b0c1f;flex:none}
+.av.big{width:88px;height:88px;font-size:2.3rem;margin:0 auto 14px}
+.me b{display:block}.me small{color:var(--muted)}
+.nav{display:grid;gap:6px}
+.nav button{display:flex;align-items:center;gap:12px;padding:13px 14px;border-radius:14px;text-align:left;font-weight:600;color:var(--muted);transition:.2s}
+.nav button.on{background:var(--raised);color:var(--text)}
+.sidefoot{margin-top:auto}
+.seg{display:flex;background:var(--bg);border-radius:14px;padding:4px}
+.seg button{flex:1;padding:9px 6px;border-radius:11px;color:var(--muted);font-weight:600;font-size:.9rem}
+.seg button.on{background:var(--raised);color:var(--text)}
+.grp{display:flex;align-items:center;gap:12px}
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.stat{background:var(--bg);border-radius:16px;padding:14px}
+.stat b{display:block;font-size:1.6rem}.stat span{color:var(--muted);font-size:.85rem}
+label.f{display:block;color:var(--muted);font-size:.85rem;margin:12px 0 6px}
+@media(min-width:900px){
+  .side{transform:none}.scrim{display:none}.menu{display:none!important}
+  body.inapp{padding-left:calc(280px + env(safe-area-inset-left))}
+}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -115,7 +143,7 @@ textarea{min-height:130px;resize:vertical}
 <!-- APP -->
 <section class="view" id="app">
   <div class="top">
-    <div><div class="date" id="aDate"></div><h2>Today</h2></div>
+    <div class="grp"><button class="icon menu" aria-label="Open menu">☰</button><div><div class="date" id="aDate"></div><h2>Today</h2></div></div>
     <button class="icon" id="setBtn" aria-label="Reminder settings">🔔</button>
   </div>
 
@@ -150,6 +178,33 @@ textarea{min-height:130px;resize:vertical}
   <div class="card"><div class="week" id="week"></div></div>
 </section>
 
+<!-- SIDE MENU -->
+<div class="scrim" id="scrim"></div>
+<aside class="side" id="side" aria-label="Menu">
+  <button class="me" id="meBtn"><div class="av" id="sAv">?</div><div><b id="sName">Your name</b><small>View profile</small></div></button>
+  <nav class="nav">
+    <button data-go="app" class="on">📋 Today</button>
+    <button data-go="profile">👤 Profile</button>
+    <button id="navRem">🔔 Reminders</button>
+  </nav>
+  <div class="sidefoot"><p class="hint" style="margin:0 0 8px">Theme</p>
+    <div class="seg" id="seg"><button data-th="light">Light</button><button data-th="dark">Dark</button><button data-th="auto">Auto</button></div></div>
+</aside>
+
+<!-- PROFILE -->
+<section class="view" id="profile">
+  <div class="top"><div class="grp"><button class="icon menu" aria-label="Open menu">☰</button><h2>Profile</h2></div></div>
+  <div class="card" style="text-align:center">
+    <div class="av big" id="pAv">?</div><h3 id="pName"></h3><p class="hint" id="pAbout"></p>
+  </div>
+  <div class="card">
+    <label class="f" for="nameIn">Your name</label><input type="text" id="nameIn" maxlength="30" autocomplete="off">
+    <label class="f" for="aboutIn">About you or your goal</label><input type="text" id="aboutIn" maxlength="80" placeholder="e.g. Build a daily routine" autocomplete="off">
+    <button class="btn full" id="saveProf">Save profile</button>
+  </div>
+  <div class="card"><h3 style="margin-bottom:12px">Your numbers</h3><div class="stats" id="stats"></div></div>
+</section>
+
 <!-- SETTINGS -->
 <div class="sheet" id="sheet">
   <div class="panel">
@@ -169,6 +224,7 @@ const $=s=>document.querySelector(s), $$=s=>document.querySelectorAll(s);
 const KEY='todo.v1';
 let S=null; try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){}
 S=S||{days:{},remind:{on:false,time:'20:00',last:''}};
+S.profile=S.profile||{name:'',about:''};S.theme=S.theme||'dark';
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
 const dk=(d=new Date())=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 const today=()=>S.days[dk()]||(S.days[dk()]=[]);
@@ -180,11 +236,11 @@ function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');clea
 const h=new Date().getHours();
 $('#wDate').textContent=niceDate(new Date());
 $('#aDate').textContent=niceDate(new Date());
-const greet=h<12?'Good morning.':h<17?'Good afternoon.':'Good evening.';
+const greet=(h<12?'Good morning':h<17?'Good afternoon':'Good evening')+(S.profile.name?', '+S.profile.name:'')+'.';
 const pend=today().filter(t=>!t.done).length;
-$('#wHi').innerHTML=greet+'<br>'+(today().length?'Keep going.':"Let's plan your day.");
+$('#wHi').textContent=greet;$('#wHi').append(document.createElement('br'),today().length?'Keep going.':"Let's plan your day.");
 if(today().length){$('#wSub').textContent=pend?pend+' task'+(pend>1?'s':'')+' still waiting for you.':'Everything is done. Nice work.';$('#startBtn').textContent='Continue'}
-$('#startBtn').onclick=()=>{$('#welcome').classList.remove('on');$('#app').classList.add('on');window.scrollTo(0,0);render();setTimeout(()=>$('#oneIn').focus(),300)};
+$('#startBtn').onclick=()=>{document.body.classList.add('inapp');go('app');setTimeout(()=>$('#oneIn').focus(),300)};
 
 /* ---- tabs ---- */
 $$('.tabs button').forEach(b=>b.onclick=()=>{
@@ -282,8 +338,48 @@ function tick(){
 }
 setInterval(tick,20000);document.addEventListener('visibilitychange',tick);
 
+/* ---- theme ---- */
+function applyTheme(){const t=S.theme,d=t==='dark'||(t==='auto'&&matchMedia('(prefers-color-scheme: dark)').matches);
+  document.documentElement.dataset.theme=d?'dark':'light';
+  $('meta[name=theme-color]').content=d?'#0e0f23':'#f4f5fc';
+  $$('#seg button').forEach(b=>b.classList.toggle('on',b.dataset.th===t))}
+$$('#seg button').forEach(b=>b.onclick=()=>{S.theme=b.dataset.th;save();applyTheme()});
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change',applyTheme);
+
+/* ---- side menu and pages ---- */
+const side=$('#side'),scrim=$('#scrim');
+function menu(o){side.classList.toggle('open',o);scrim.classList.toggle('on',o)}
+$$('.menu').forEach(b=>b.onclick=()=>menu(true));scrim.onclick=()=>menu(false);
+function go(p){
+  ['app','profile'].forEach(v=>$('#'+v).classList.toggle('on',v===p));$('#welcome').classList.remove('on');
+  $$('.nav [data-go]').forEach(b=>b.classList.toggle('on',b.dataset.go===p));
+  menu(false);window.scrollTo(0,0);if(p==='app')render();else paintProfile()}
+$$('.nav [data-go]').forEach(b=>b.onclick=()=>go(b.dataset.go));
+$('#meBtn').onclick=()=>go('profile');
+$('#navRem').onclick=()=>{menu(false);paintSettings();$('#sheet').classList.add('on')};
+
+/* ---- profile ---- */
+function paintProfile(){
+  const n=S.profile.name,A=S.profile.about,ch=(n||'You').trim().charAt(0).toUpperCase();
+  $('#pAv').textContent=ch;$('#sAv').textContent=ch;
+  $('#pName').textContent=n||'Add your name';$('#sName').textContent=n||'Your name';
+  $('#pAbout').textContent=A||'Add a goal or a line about you.';
+  $('#nameIn').value=n;$('#aboutIn').value=A;
+  const days=Object.keys(S.days).filter(k=>S.days[k].length);
+  const added=days.reduce((a,k)=>a+S.days[k].length,0);
+  const done=days.reduce((a,k)=>a+S.days[k].filter(t=>t.done).length,0);
+  const avg=days.length?Math.round(days.reduce((a,k)=>a+pctOf(S.days[k]),0)/days.length):0;
+  const best=days.reduce((m,k)=>Math.max(m,pctOf(S.days[k])),0);
+  let streak=0;
+  for(let i=0;;i++){const d=new Date();d.setDate(d.getDate()-i);const L=S.days[dk(d)]||[];
+    if(L.length&&pctOf(L)>=50)streak++;else if(i===0&&!L.length)continue;else break}
+  const st=[[days.length,'Days tracked'],[added,'Tasks added'],[done,'Tasks completed'],[avg+'%','Average score'],[best+'%','Best day'],[streak,'Day streak (50%+)']];
+  $('#stats').innerHTML=st.map(x=>'<div class="stat"><b>'+x[0]+'</b><span>'+x[1]+'</span></div>').join('');
+}
+$('#saveProf').onclick=()=>{S.profile.name=$('#nameIn').value.trim();S.profile.about=$('#aboutIn').value.trim();save();paintProfile();toast('Profile saved')};
+
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
-render();
+applyTheme();paintProfile();render();
 </script>
 </body>
 </html>
